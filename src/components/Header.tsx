@@ -1,3 +1,4 @@
+import React from "react";
 import { Camera, Home, PlusSquare, User, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 

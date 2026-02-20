@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState, useRef } from 'react';
 import { Grid, User as UserIcon, Settings, X, LogOut, QrCode, Trash2, Camera, Edit3, Heart, MessageCircle } from 'lucide-react';
 import { supabase, Post as PostType, Profile as ProfileType } from '../lib/supabase';

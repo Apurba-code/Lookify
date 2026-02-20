@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from 'react';
 import { supabase, Post as PostType } from '../lib/supabase';
 import { Post } from './Post';

@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useRef } from 'react';
 import { Camera, User, Calendar, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';

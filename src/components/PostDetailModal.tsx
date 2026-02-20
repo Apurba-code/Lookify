@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from 'react';
 import { X, Heart, MessageCircle } from 'lucide-react';
 import { supabase, Profile } from '../lib/supabase';
