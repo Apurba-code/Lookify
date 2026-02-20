@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Heart, MessageCircle } from 'lucide-react';
 import { supabase, Profile } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -166,7 +165,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
             </button>
 
             <div
-                className="bg-white rounded-xl max-w-6xl w-full h-[85vh] overflow-hidden flex flex-col md:flex-row shadow-2xl"
+                className="bg-white dark:bg-gray-900 rounded-xl max-w-6xl w-full h-[85vh] overflow-hidden flex flex-col md:flex-row shadow-2xl transition-colors"
                 onClick={(e) => e.stopPropagation()}
             >
                 {loading ? (
@@ -175,19 +174,29 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                     </div>
                 ) : post ? (
                     <>
-                        {/* Left: Post Image */}
+                        {/* Left: Post Image/Video */}
                         <div className="md:w-[60%] bg-black flex items-center justify-center h-[40vh] md:h-full">
-                            <img
-                                src={post.image_url}
-                                alt="Post"
-                                className="w-full h-full object-contain"
-                            />
+                            {post.image_url.match(/\.(mp4|mov|webm)$/i) ? (
+                                <video
+                                    src={post.image_url}
+                                    className="w-full h-full object-contain"
+                                    controls
+                                    autoPlay
+                                    muted
+                                />
+                            ) : (
+                                <img
+                                    src={post.image_url}
+                                    alt="Post"
+                                    className="w-full h-full object-contain"
+                                />
+                            )}
                         </div>
 
                         {/* Right: Details */}
                         <div className="md:w-[40%] flex flex-col h-[50vh] md:h-full">
                             {/* Header */}
-                            <div className="flex items-center gap-3 p-4 border-b border-gray-200">
+                            <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-800">
                                 <button onClick={() => { onClose(); onNavigateToProfile(post.profiles.id); }}>
                                     {post.profiles.avatar_url ? (
                                         <img
@@ -202,15 +211,16 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                     )}
                                 </button>
                                 <div className="flex-1">
-                                    <button
-                                        onClick={() => { onClose(); onNavigateToProfile(post.profiles.id); }}
-                                        className="font-semibold text-sm hover:text-blue-600 transition-colors"
-                                    >
-                                        {post.profiles.username}
-                                    </button>
-                                    {post.profiles.full_name && (
-                                        <p className="text-xs text-gray-500">{post.profiles.full_name}</p>
-                                    )}
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={() => { onClose(); onNavigateToProfile(post.profiles.id); }}
+                                            className="font-semibold text-sm hover:text-blue-600 transition-colors dark:text-white"
+                                        >
+                                            {post.profiles.username}
+                                        </button>
+                                        <span className="text-gray-400 dark:text-gray-500 text-sm">•</span>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{timeAgo(post.created_at)}</p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -229,8 +239,8 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                             )}
                                         </button>
                                         <div>
-                                            <p className="text-sm">
-                                                <span className="font-semibold mr-2">{post.profiles.username}</span>
+                                            <p className="text-sm dark:text-gray-100">
+                                                <span className="font-semibold mr-2 dark:text-white">{post.profiles.username}</span>
                                                 {post.caption}
                                             </p>
                                             <p className="text-xs text-gray-400 mt-1">{timeAgo(post.created_at)}</p>
@@ -240,8 +250,8 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
 
                                 {/* Likes summary */}
                                 {likes.length > 0 && (
-                                    <div className="py-2 border-y border-gray-100">
-                                        <p className="text-sm font-semibold text-gray-700 mb-2">
+                                    <div className="py-2 border-y border-gray-100 dark:border-gray-800">
+                                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                             ❤️ {likes.length} {likes.length === 1 ? 'like' : 'likes'}
                                         </p>
                                         <div className="flex flex-wrap gap-2">
@@ -249,7 +259,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                                 <button
                                                     key={like.id}
                                                     onClick={() => { onClose(); onNavigateToProfile(like.user_id); }}
-                                                    className="flex items-center gap-1.5 bg-gray-50 rounded-full px-2.5 py-1 hover:bg-gray-100 transition-colors"
+                                                    className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-800 rounded-full px-2.5 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                                                 >
                                                     {like.profiles?.avatar_url ? (
                                                         <img src={like.profiles.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
@@ -258,7 +268,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                                             {like.profiles?.username?.[0]?.toUpperCase() || '?'}
                                                         </div>
                                                     )}
-                                                    <span className="text-xs font-medium text-gray-700">{like.profiles?.username}</span>
+                                                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{like.profiles?.username}</span>
                                                 </button>
                                             ))}
                                             {likes.length > 8 && (
@@ -283,10 +293,10 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                                     )}
                                                 </button>
                                                 <div className="flex-1">
-                                                    <p className="text-sm">
+                                                    <p className="text-sm dark:text-gray-100">
                                                         <button
                                                             onClick={() => { onClose(); onNavigateToProfile(c.user_id); }}
-                                                            className="font-semibold mr-2 hover:text-blue-600 transition-colors"
+                                                            className="font-semibold mr-2 hover:text-blue-600 transition-colors dark:text-white"
                                                         >
                                                             {c.profiles?.username}
                                                         </button>
@@ -306,19 +316,19 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                             </div>
 
                             {/* Actions */}
-                            <div className="border-t border-gray-200 p-4">
-                                <div className="flex items-center gap-4 mb-3">
+                            <div className="border-t border-gray-200 dark:border-gray-800 p-4">
+                                <div className="flex items-center gap-4 mb-3 dark:text-white">
                                     <button
                                         onClick={handleLike}
-                                        className="hover:text-gray-500 transition-colors"
+                                        className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
                                     >
                                         <Heart className={`w-6 h-6 ${isLiked ? 'fill-red-600 text-red-600' : ''}`} />
                                     </button>
-                                    <label htmlFor="modal-comment-input" className="cursor-pointer hover:text-gray-500 transition-colors">
+                                    <label htmlFor="modal-comment-input" className="cursor-pointer hover:text-gray-500 dark:hover:text-gray-400 transition-colors">
                                         <MessageCircle className="w-6 h-6" />
                                     </label>
                                 </div>
-                                <p className="font-semibold text-sm mb-2">{likes.length} {likes.length === 1 ? 'like' : 'likes'}</p>
+                                <p className="font-semibold text-sm mb-2 dark:text-white">{likes.length} {likes.length === 1 ? 'like' : 'likes'}</p>
 
                                 <form onSubmit={handleComment} className="flex gap-2 items-center">
                                     <input
@@ -327,13 +337,13 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                         value={comment}
                                         onChange={(e) => setComment(e.target.value)}
                                         placeholder="Add a comment..."
-                                        className="flex-1 text-sm focus:outline-none border-none bg-transparent"
+                                        className="flex-1 text-sm focus:outline-none border-none bg-transparent dark:text-white dark:placeholder-gray-400"
                                     />
                                     {comment.trim() && (
                                         <button
                                             type="submit"
                                             disabled={submitting}
-                                            className="text-blue-600 font-semibold text-sm hover:text-blue-800 disabled:opacity-50"
+                                            className="text-blue-600 font-semibold text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50"
                                         >
                                             {submitting ? '...' : 'Post'}
                                         </button>

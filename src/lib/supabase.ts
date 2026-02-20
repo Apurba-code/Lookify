@@ -58,3 +58,10 @@ export type Follow = {
   following_id: string;
   created_at: string;
 };
+
+export type SavedPost = {
+  id: string;
+  user_id: string;
+  post_id: string;
+  created_at: string;
+};

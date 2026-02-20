@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search as SearchIcon, UserPlus, UserCheck } from 'lucide-react';
 import { supabase, Profile } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -120,7 +119,7 @@ export function Search({ onNavigateToProfile }: SearchProps) {
             ) : results.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                     {results.map((profile) => (
-                        <div key={profile.id} className="bg-white border boundary-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
+                        <div key={profile.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
                             <div
                                 onClick={() => onNavigateToProfile(profile.id)}
                                 className="cursor-pointer mb-4"
@@ -133,18 +132,18 @@ export function Search({ onNavigateToProfile }: SearchProps) {
                                     />
                                 ) : (
                                     <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-3xl font-bold mx-auto">
-                                        {profile.username[0].toUpperCase()}
+                                        {profile?.username?.[0]?.toUpperCase() || '?'}
                                     </div>
                                 )}
                             </div>
 
                             <h3
                                 onClick={() => onNavigateToProfile(profile.id)}
-                                className="font-bold text-lg text-gray-900 mb-1 cursor-pointer hover:text-blue-600"
+                                className="font-bold text-lg text-gray-900 dark:text-white mb-1 cursor-pointer hover:text-blue-600"
                             >
                                 {profile.username}
                             </h3>
-                            <p className="text-gray-500 text-sm mb-4 line-clamp-2">{profile.bio || 'No bio yet'}</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">{profile.bio || 'No bio yet'}</p>
 
                             <button
                                 onClick={() => handleFollow(profile.id)}

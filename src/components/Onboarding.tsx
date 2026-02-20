@@ -39,6 +39,18 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 setError('Please fill in all fields');
                 return;
             }
+            // Persist basic info to DB immediately so partial completion is remembered
+            try {
+                await supabase
+                    .from('profiles')
+                    .update({
+                        gender,
+                        birth_date: birthDate
+                    })
+                    .eq('id', user?.id);
+            } catch (err) {
+                console.error('Error persisting step 1:', err);
+            }
             setStep(2);
         } else if (step === 2) {
             await handleSubmit();
@@ -124,8 +136,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                                             key={option}
                                             onClick={() => setGender(option)}
                                             className={`py-2 px-4 rounded-lg text-sm font-medium border transition-colors ${gender === option
-                                                    ? 'bg-blue-600 text-white border-blue-600'
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                                ? 'bg-blue-600 text-white border-blue-600'
+                                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {option}
