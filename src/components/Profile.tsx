@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Grid, User as UserIcon, Settings, X, LogOut, QrCode, Trash2, Camera, Edit3, Heart, MessageCircle, PlaySquare, Bookmark } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Grid, User as UserIcon, Settings, X, LogOut, QrCode, Camera, Edit3, Heart, MessageCircle, PlaySquare, Bookmark } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import { supabase, Post as PostType, Profile as ProfileType } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PostDetailModal } from './PostDetailModal';
 import { Modal } from './Modal';
+import { ThemeToggle } from './ThemeToggle';
 import QRCode from 'qrcode';
 
 type ProfileProps = {
@@ -11,7 +13,8 @@ type ProfileProps = {
   onNavigateToProfile?: (userId: string) => void;
 };
 
-export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
+export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProps) {
+  const { userId: urlUserId } = useParams<{ userId: string }>();
   const { user: currentUser, signOut } = useAuth();
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [posts, setPosts] = useState<PostType[]>([]);
@@ -44,18 +47,26 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
     followers: true,
   });
 
-  const profileId = userId || currentUser?.id;
+  const profileId = urlUserId || propUserId || currentUser?.id;
   const isOwnProfile = profileId === currentUser?.id;
+
+  console.log('Profile rendering:', { urlUserId, propUserId, currentUserId: currentUser?.id, profileId, isOwnProfile });
 
   useEffect(() => {
     if (profileId) {
+      console.log('Loading profile data for:', profileId);
       loadProfile();
       loadPosts();
       loadSavedPosts();
       loadStats();
       checkFollowing();
+    } else if (currentUser === null && !loading) {
+      // Not logged in and no ID in URL? Navigate to login if not already handled
+      // App.tsx handles this but as a safety:
+      console.log('No profileId and not logged in');
+      setLoading(false);
     }
-  }, [profileId]);
+  }, [profileId, currentUser]);
 
   useEffect(() => {
     if (showSettingsModal && profile) {
@@ -97,7 +108,7 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
 
   async function generateQRCode() {
     try {
-      const url = `${window.location.origin}`; // In a real app, this would be a deep link to the user profile
+      const url = `${window.location.origin} `; // In a real app, this would be a deep link to the user profile
       const qrMethod = QRCode as any; // Type assertion to bypass potential type mismatch
       const qr = await qrMethod.toDataURL(url);
       setQrCodeUrl(qr);
@@ -127,12 +138,7 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
     try {
       const { data, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          profiles!posts_user_id_fkey(*),
-          likes(count),
-          comments(count)
-        `)
+        .select('*, profiles!posts_user_id_fkey(*), likes(count), comments(count)')
         .eq('user_id', profileId)
         .order('created_at', { ascending: false });
 
@@ -140,8 +146,6 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
       setPosts(data || []);
     } catch (error) {
       console.error('Error loading posts:', error);
-    } finally {
-      // Only set loading false if we have profile data or error
     }
   }
 
@@ -150,21 +154,13 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
     try {
       const { data, error } = await supabase
         .from('saved_posts')
-        .select(`
-            post_id,
-            posts:post_id (
-                *,
-                profiles!posts_user_id_fkey(*),
-                likes(count),
-                comments(count)
-            )
-          `)
+        .select('post_id, posts(id, image_url, likes(count), comments(count))')
         .eq('user_id', currentUser?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      // Transform data to match PostType
-      const formattedPosts = data?.map((item: any) => item.posts) || [];
+      // Transform data - ensure we only have valid post objects
+      const formattedPosts = data?.map((item: any) => item.posts).filter(Boolean) || [];
       setSavedPosts(formattedPosts);
     } catch (error) {
       console.error('Error loading saved posts:', error);
@@ -190,7 +186,7 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
   }
 
   async function checkFollowing() {
-    if (!currentUser || isOwnProfile) return;
+    if (!currentUser || isOwnProfile || !profileId) return;
 
     try {
       const { data } = await supabase
@@ -266,7 +262,7 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
       // Rollback
       setIsFollowing(previousFollowing);
       setStats(previousStats);
-      alert(`Failed to follow/unfollow: ${error.message || 'Please try again.'}`);
+      alert(`Failed to follow / unfollow: ${error.message || 'Please try again.'} `);
     }
   }
 
@@ -324,26 +320,27 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center py-24">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Profile not found</p>
+      <div className="text-center py-24">
+        <p className="text-gray-500 text-lg">Profile not found</p>
+        <p className="text-gray-400 text-sm mt-2">The user you're looking for doesn't seem to exist.</p>
       </div>
     );
   }
 
-  const filteredPosts = (activeTab === 'saved' ? savedPosts : posts).filter(post => {
-    if (!post) return false;
-    const isVideo = post.image_url.match(/\.(mp4|mov|webm)$/i);
+  const currentPosts = activeTab === 'saved' ? savedPosts : posts;
+  const filteredPosts = (currentPosts || []).filter(post => {
+    if (!post?.image_url) return false;
+    const isVideo = typeof post.image_url === 'string' && post.image_url.match(/\.(mp4|mov|webm)$/i);
     if (activeTab === 'reels') return isVideo;
-    if (activeTab === 'posts') return true; // Show all in posts tab
-    return true; // Show all types in saved
+    return true;
   });
 
   return (
@@ -409,7 +406,7 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
         </div>
       </div>
 
-      <div className="border-t border-gray-300 dark:border-gray-700">
+      <div className="border-t border-gray-300 dark:border-gray-700 mb-8">
         <div className="flex justify-center gap-12">
           <button
             onClick={() => setActiveTab('posts')}
@@ -673,7 +670,12 @@ export function Profile({ userId, onNavigateToProfile }: ProfileProps) {
                       <p className="text-sm text-gray-500 dark:text-gray-400">Scan to follow {profile.username}</p>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Theme</span>
+                        <ThemeToggle />
+                      </div>
+
                       <button
                         onClick={() => signOut()}
                         className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"

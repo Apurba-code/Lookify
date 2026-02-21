@@ -1,7 +1,6 @@
-import React from "react";
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Camera } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 export function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -39,13 +38,13 @@ export function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="bg-white border border-gray-300 rounded-lg p-8 mb-4">
           <div className="flex justify-center mb-8">
-            <div className="flex items-center gap-2">
-              <Camera className="w-10 h-10 text-blue-600" />
-              <h1 className="text-4xl font-bold text-gray-900">Lookify</h1>
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Lookify Logo" className="w-10 h-10 object-contain" />
+              <h1 className="text-4xl font-bold text-gray-900 font-heading">Lookify</h1>
             </div>
           </div>
 

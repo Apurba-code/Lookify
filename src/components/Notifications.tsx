@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { supabase, Notification, Profile } from '../lib/supabase';
+import { useState, useEffect } from 'react';
+import { supabase, Profile, Notification } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Heart, MessageCircle, UserPlus, ArrowLeft, Loader2 } from 'lucide-react';
+import { Heart, ArrowLeft, Loader2 } from 'lucide-react';
 
 type NotificationsProps = {
     onNavigateToProfile: (userId: string) => void;
@@ -24,15 +24,7 @@ export function Notifications({ onNavigateToProfile, onBack }: NotificationsProp
         try {
             const { data, error } = await supabase
                 .from('notifications')
-                .select(`
-                    *,
-                    sender:sender_id (
-                        id,
-                        username,
-                        avatar_url,
-                        full_name
-                    )
-                `)
+                .select('*, sender:sender_id(id, username, avatar_url, full_name)')
                 .eq('user_id', user?.id)
                 .order('created_at', { ascending: false });
 
@@ -53,6 +45,9 @@ export function Notifications({ onNavigateToProfile, onBack }: NotificationsProp
                 .update({ is_read: true })
                 .eq('user_id', user.id)
                 .eq('is_read', false);
+
+            // Notify sidebar to refresh
+            window.dispatchEvent(new CustomEvent('refreshUnreadCounts'));
         } catch (error) {
             console.error('Error marking notifications as read:', error);
         }

@@ -45,6 +45,10 @@ CREATE POLICY "Users can send messages"
     ON public.messages FOR INSERT
     WITH CHECK (auth.uid() = sender_id);
 
+CREATE POLICY "Users can update received messages"
+    ON public.messages FOR UPDATE
+    USING (auth.uid() = receiver_id);
+
 -- Helper function to check mutual follow (for messaging restriction)
 -- Note: This is a policy-level check or application-level. 
 -- For strictness, we can add a CHECK constraint or keep it in the app logic.

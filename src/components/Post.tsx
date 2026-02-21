@@ -4,6 +4,7 @@ import { supabase, Post as PostType } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PostDetailModal } from './PostDetailModal';
 import { Modal } from './Modal';
+import { ShareModal } from './ShareModal';
 
 type PostProps = {
   post: PostType;
@@ -26,6 +27,7 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editCaption, setEditCaption] = useState(post.caption || '');
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   async function handleDelete() {
     setShowDeleteModal(false);
@@ -308,7 +310,10 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
               >
                 <MessageCircle className="w-6 h-6" />
               </button>
-              <button className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors">
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+              >
                 <Send className="w-6 h-6" />
               </button>
             </div>
@@ -446,8 +451,14 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
           onClose={() => setShowDetailModal(false)}
           onNavigateToProfile={onNavigateToProfile}
         />
-      )
-      }
+      )}
+
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        postId={post.id}
+        postUrl={`${window.location.origin}/post/${post.id}`}
+      />
     </>
   );
 }

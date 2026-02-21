@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X, Heart, MessageCircle } from 'lucide-react';
+import { X, Heart, MessageCircle, Send } from 'lucide-react';
 import { supabase, Profile } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { ShareModal } from './ShareModal';
 
 type PostDetail = {
     id: string;
@@ -42,6 +42,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
     const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
 
     useEffect(() => {
         loadPostDetails();
@@ -327,6 +328,12 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                     <label htmlFor="modal-comment-input" className="cursor-pointer hover:text-gray-500 dark:hover:text-gray-400 transition-colors">
                                         <MessageCircle className="w-6 h-6" />
                                     </label>
+                                    <button
+                                        onClick={() => setShowShareModal(true)}
+                                        className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                                    >
+                                        <Send className="w-6 h-6" />
+                                    </button>
                                 </div>
                                 <p className="font-semibold text-sm mb-2 dark:text-white">{likes.length} {likes.length === 1 ? 'like' : 'likes'}</p>
 
@@ -358,6 +365,15 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                     </div>
                 )}
             </div>
+
+            {post && (
+                <ShareModal
+                    isOpen={showShareModal}
+                    onClose={() => setShowShareModal(false)}
+                    postId={post.id}
+                    postUrl={`${window.location.origin}/post/${post.id}`}
+                />
+            )}
         </div>
     );
 }

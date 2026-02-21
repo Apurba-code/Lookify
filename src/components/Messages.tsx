@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase, Profile, Message } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Send, Loader2, User } from 'lucide-react';
@@ -27,12 +27,30 @@ export function Messages({ onBack, onNavigateToProfile }: MessagesProps) {
     useEffect(() => {
         if (selectedUser) {
             loadMessages();
+            markMessagesAsRead();
             const subscription = subscribeToMessages();
             return () => {
                 subscription.unsubscribe();
             };
         }
     }, [selectedUser]);
+
+    async function markMessagesAsRead() {
+        if (!user || !selectedUser) return;
+        try {
+            await supabase
+                .from('messages')
+                .update({ is_read: true })
+                .eq('receiver_id', user.id)
+                .eq('sender_id', selectedUser.id)
+                .eq('is_read', false);
+
+            // Notify sidebar to refresh
+            window.dispatchEvent(new CustomEvent('refreshUnreadCounts'));
+        } catch (err) {
+            console.error('Error marking messages as read:', err);
+        }
+    }
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -92,15 +110,16 @@ export function Messages({ onBack, onNavigateToProfile }: MessagesProps) {
     function subscribeToMessages() {
         return supabase
             .channel('messages')
-            .on('postgres_changes', { 
-                event: 'INSERT', 
-                schema: 'public', 
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
                 table: 'messages',
                 filter: `receiver_id=eq.${user?.id}`
             }, (payload) => {
                 const newMsg = payload.new as Message;
                 if (newMsg.sender_id === selectedUser?.id) {
                     setMessages(prev => [...prev, newMsg]);
+                    markMessagesAsRead(); // Mark as read immediately if chat is open
                 }
             })
             .subscribe();

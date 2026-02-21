@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/Auth';
 import { Header } from './components/Header';
@@ -11,77 +11,75 @@ import { Notifications } from './components/Notifications';
 import { Messages } from './components/Messages';
 import { Sidebar } from './components/Sidebar';
 
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
-  const [currentView, setCurrentView] = useState<'home' | 'profile' | 'create' | 'search' | 'onboarding' | 'notifications' | 'messages'>('home');
-  const [showCreatePost, setShowCreatePost] = useState(false);
-  const [viewingUserId, setViewingUserId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Check for onboarding
   useEffect(() => {
-    if (user && profile && !profile.gender && !profile.birth_date && currentView === 'home') {
-      setCurrentView('onboarding');
+    if (user && profile && !profile.gender && !profile.birth_date && location.pathname !== '/onboarding') {
+      navigate('/onboarding');
     }
-  }, [user, profile, currentView === 'home']);
+  }, [user, profile, location.pathname, navigate]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
       </div>
     );
   }
 
-  if (!user) {
-    return <Auth />;
+  if (!user && location.pathname !== '/login') {
+    return <Navigate to="/login" replace />;
   }
 
-  if (currentView === 'onboarding') {
-    return <Onboarding onComplete={() => setCurrentView('home')} />;
+  if (user && location.pathname === '/login') {
+    return <Navigate to="/" replace />;
   }
 
-  function handleNavigate(view: 'home' | 'profile' | 'create' | 'search' | 'notifications' | 'messages', userId?: string) {
-    if (view === 'create') {
-      setShowCreatePost(true);
-    } else {
-      setCurrentView(view);
-      if (userId) {
-        setViewingUserId(userId);
-      } else {
-        setViewingUserId(null); // Reset when going to own profile via header or home
-      }
-    }
-  }
-
-  function handlePostSuccess() {
-    setCurrentView('home');
-  }
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/onboarding';
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-200">
-      <Sidebar currentView={currentView} onNavigate={handleNavigate} />
+    <div className={`min-h-screen transition-colors duration-200 ${isAuthPage ? 'bg-white text-gray-900' : 'bg-white dark:bg-gray-950 dark:text-gray-100'}`}>
+      {user && location.pathname !== '/login' && location.pathname !== '/onboarding' && (
+        <Sidebar />
+      )}
 
-      <div className="md:ml-20 pb-20 md:pb-0">
-        <Header currentView={currentView} onNavigate={handleNavigate} />
+      <div className={`${user && location.pathname !== '/login' && location.pathname !== '/onboarding' ? 'md:pl-20' : ''} pb-20 md:pb-0`}>
+        {user && location.pathname !== '/login' && location.pathname !== '/onboarding' && (
+          <Header />
+        )}
 
         <main className="max-w-4xl mx-auto px-0 sm:px-4">
-          {currentView === 'home' && <Feed onNavigateToProfile={(userId) => handleNavigate('profile', userId)} />}
-          {currentView === 'profile' && <Profile userId={viewingUserId || undefined} onNavigateToProfile={(userId) => handleNavigate('profile', userId)} />}
-          {currentView === 'search' && <Search onNavigateToProfile={(userId) => handleNavigate('profile', userId)} />}
-          {currentView === 'notifications' && <Notifications onNavigateToProfile={(userId) => handleNavigate('profile', userId)} onBack={() => setCurrentView('home')} />}
-          {currentView === 'messages' && <Messages onBack={() => setCurrentView('home')} onNavigateToProfile={(userId) => handleNavigate('profile', userId)} />}
+          <Routes>
+            <Route path="/login" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding onComplete={() => navigate('/')} />} />
+
+            <Route path="/" element={<Feed onNavigateToProfile={(userId: string) => navigate(`/profile/${userId}`)} />} />
+            <Route path="/search" element={<Search onNavigateToProfile={(userId: string) => navigate(`/profile/${userId}`)} />} />
+            <Route path="/notifications" element={<Notifications onNavigateToProfile={(userId: string) => navigate(`/profile/${userId}`)} onBack={() => navigate(-1)} />} />
+            <Route path="/inbox" element={<Messages onBack={() => navigate(-1)} onNavigateToProfile={(userId: string) => navigate(`/profile/${userId}`)} />} />
+            <Route path="/profile" element={<Profile onNavigateToProfile={(userId: string) => navigate(`/profile/${userId}`)} />} />
+            <Route path="/profile/:userId" element={<Profile onNavigateToProfile={(userId: string) => navigate(`/profile/${userId}`)} />} />
+
+            {/* Create Post can be a route or a modal. User asked for /create route */}
+            <Route path="/create" element={
+              <CreatePost
+                onClose={() => navigate(-1)}
+                onSuccess={() => navigate('/')}
+              />
+            } />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </main>
       </div>
-
-      {showCreatePost && (
-        <CreatePost
-          onClose={() => setShowCreatePost(false)}
-          onSuccess={handlePostSuccess}
-        />
-      )}
     </div>
   );
 }
@@ -90,7 +88,9 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <AppContent />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
       </ThemeProvider>
     </AuthProvider>
   );
