@@ -1,4 +1,3 @@
-import React from "react";
 import { useState, useRef } from 'react';
 import { Camera, User, Calendar, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -9,7 +8,7 @@ type OnboardingProps = {
 };
 
 export function Onboarding({ onComplete }: OnboardingProps) {
-    const { user } = useAuth();
+    const { user, refreshProfile } = useAuth();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -92,6 +91,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
 
             if (updateError) throw updateError;
 
+            await refreshProfile();
             onComplete();
         } catch (err: any) {
             console.error('Error updating profile:', err);

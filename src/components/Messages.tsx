@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase, Profile, Message } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Send, Loader2, User } from 'lucide-react';
+import { Send, Loader2, User, ArrowLeft } from 'lucide-react';
 
 type MessagesProps = {
     onBack: () => void;

@@ -361,15 +361,16 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
         </div>
 
         <div className="flex-1">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-6">
             <h1 className="text-2xl font-light dark:text-white">{profile.username}</h1>
             {isOwnProfile ? (
               <button
                 onClick={() => setShowSettingsModal(true)}
-                className="px-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 dark:text-white"
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center justify-center dark:text-white"
+                aria-label="Settings"
+                title="Settings"
               >
-                <Settings className="w-4 h-4" />
-                Settings
+                <Settings className="w-6 h-6" />
               </button>
             ) : (
               <button

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { X, Upload, Image as ImageIcon, Video } from 'lucide-react';
+import { X, Camera, Image, Wand2, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -28,7 +28,7 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
 
     try {
       const fileExt = file.name.split('.').pop()?.toLowerCase();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt} `;
       const filePath = `${user.id}/${fileName}`;
 
       let type: 'image' | 'video' = 'image';
@@ -124,7 +124,7 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
                   Media URL (Image or Video)
                 </label>
                 <div className="relative">
-                  <ImageIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="url"
                     value={mediaUrl}

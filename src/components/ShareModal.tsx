@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
 import { supabase, Profile } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { X, Search, Send, Loader2, Check } from 'lucide-react';
+import { Search, Send, Loader2, Check } from 'lucide-react';
 import { Modal } from './Modal';
 
 type ShareModalProps = {
     isOpen: boolean;
     onClose: () => void;
     postUrl: string;
-    postId: string;
 };
 
-export function ShareModal({ isOpen, onClose, postUrl, postId }: ShareModalProps) {
+export function ShareModal({ isOpen, onClose, postUrl }: ShareModalProps) {
     const { user } = useAuth();
     const [mutualFollows, setMutualFollows] = useState<Profile[]>([]);
     const [searchQuery, setSearchQuery] = useState('');

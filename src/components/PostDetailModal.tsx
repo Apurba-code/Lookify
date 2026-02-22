@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { X, Heart, MessageCircle, Send } from 'lucide-react';
 import { supabase, Profile } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -176,11 +177,11 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                 ) : post ? (
                     <>
                         {/* Left: Post Image/Video */}
-                        <div className="md:w-[60%] bg-black flex items-center justify-center h-[40vh] md:h-full">
+                        <div className="md:w-[60%] bg-black flex items-center justify-center min-h-[40vh] md:h-full relative overflow-hidden">
                             {post.image_url.match(/\.(mp4|mov|webm)$/i) ? (
                                 <video
                                     src={post.image_url}
-                                    className="w-full h-full object-contain"
+                                    className="max-w-full max-h-full w-auto h-auto object-contain"
                                     controls
                                     autoPlay
                                     muted
@@ -189,7 +190,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                 <img
                                     src={post.image_url}
                                     alt="Post"
-                                    className="w-full h-full object-contain"
+                                    className="max-w-full max-h-full w-auto h-auto object-contain"
                                 />
                             )}
                         </div>
@@ -323,7 +324,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                         onClick={handleLike}
                                         className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
                                     >
-                                        <Heart className={`w-6 h-6 ${isLiked ? 'fill-red-600 text-red-600' : ''}`} />
+                                        <Heart className={`w - 6 h - 6 ${isLiked ? 'fill-red-600 text-red-600' : ''} `} />
                                     </button>
                                     <label htmlFor="modal-comment-input" className="cursor-pointer hover:text-gray-500 dark:hover:text-gray-400 transition-colors">
                                         <MessageCircle className="w-6 h-6" />
@@ -370,8 +371,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                 <ShareModal
                     isOpen={showShareModal}
                     onClose={() => setShowShareModal(false)}
-                    postId={post.id}
-                    postUrl={`${window.location.origin}/post/${post.id}`}
+                    postUrl={`${window.location.origin} /post/${post.id} `}
                 />
             )}
         </div>

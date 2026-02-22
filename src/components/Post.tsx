@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
 import { supabase, Post as PostType } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -456,7 +456,6 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
       <ShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        postId={post.id}
         postUrl={`${window.location.origin}/post/${post.id}`}
       />
     </>
