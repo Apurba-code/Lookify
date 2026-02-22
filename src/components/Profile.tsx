@@ -7,6 +7,7 @@ import { PostDetailModal } from './PostDetailModal';
 import { Modal } from './Modal';
 import { ThemeToggle } from './ThemeToggle';
 import QRCode from 'qrcode';
+import { ImageAdjustModal } from './ImageAdjustModal';
 
 type ProfileProps = {
   userId?: string;
@@ -37,8 +38,10 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
   // Edit Profile State
   const [editFullName, setEditFullName] = useState('');
   const [editBio, setEditBio] = useState('');
-  const [editAvatar, setEditAvatar] = useState<File | null>(null);
+  const [editAvatar, setEditAvatar] = useState<Blob | null>(null);
   const [editAvatarPreview, setEditAvatarPreview] = useState('');
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [adjustImage, setAdjustImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [notifications, setNotifications] = useState({
@@ -273,11 +276,13 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
       let avatarUrl = profile?.avatar_url;
 
       if (editAvatar) {
-        const fileExt = editAvatar.name.split('.').pop();
-        const fileName = `${currentUser.id}/${Math.random()}.${fileExt}`;
+        const fileName = `${currentUser.id}/${Math.random()}.jpg`;
         const { error: uploadError } = await supabase.storage
-          .from('avatars') // Ensure this bucket exists or use 'posts' if reusing
-          .upload(fileName, editAvatar);
+          .from('avatars')
+          .upload(fileName, editAvatar, {
+            contentType: 'image/jpeg',
+            upsert: true
+          });
 
         if (uploadError) throw uploadError;
 
@@ -308,14 +313,22 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
     }
   }
 
-
-
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setEditAvatar(file);
-      setEditAvatarPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAdjustImage(reader.result as string);
+        setShowAdjustModal(true);
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    setEditAvatar(croppedBlob);
+    setEditAvatarPreview(URL.createObjectURL(croppedBlob));
+    setShowAdjustModal(false);
   };
 
   if (loading) {
@@ -732,6 +745,17 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
           </button>
         </div>
       </Modal>
+
+      {showAdjustModal && adjustImage && (
+        <ImageAdjustModal
+          image={adjustImage}
+          onClose={() => {
+            setShowAdjustModal(false);
+            setAdjustImage(null);
+          }}
+          onComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

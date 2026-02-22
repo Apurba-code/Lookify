@@ -155,11 +155,11 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
           {/* Left Side: Media Upload/Preview */}
-          <div className="flex-[1.4] bg-gray-50 dark:bg-zinc-900/50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 relative group">
+          <div className="flex-1 md:flex-[1.6] bg-gray-50 dark:bg-zinc-900/50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 relative group min-w-0">
             {mediaItems.length === 0 ? (
-              <div className="flex flex-col items-center p-8 text-center">
+              <div className="flex flex-col items-center p-8 text-center w-full">
                 <div className="w-24 h-24 mb-6 text-gray-400 flex items-center justify-center bg-gray-100 dark:bg-zinc-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700">
                   <ImageIcon className="w-12 h-12" />
                 </div>
@@ -175,9 +175,9 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
                 </button>
               </div>
             ) : (
-              <div className="w-full h-full flex flex-col bg-black relative">
+              <div className="w-full h-full flex flex-col bg-black relative min-w-0">
                 {/* Main Preview */}
-                <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+                <div className="flex-1 flex items-center justify-center relative overflow-hidden bg-black">
                   {mediaItems[currentIndex].type === 'video' ? (
                     <video
                       key={mediaItems[currentIndex].url}
@@ -199,14 +199,14 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
                       <button
                         onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
                         disabled={currentIndex === 0}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full text-white disabled:opacity-0 transition-opacity"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full text-white disabled:opacity-0 transition-opacity z-20"
                       >
                         <ChevronDown className="w-6 h-6 rotate-90" />
                       </button>
                       <button
                         onClick={() => setCurrentIndex(prev => Math.min(mediaItems.length - 1, prev + 1))}
                         disabled={currentIndex === mediaItems.length - 1}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full text-white disabled:opacity-0 transition-opacity"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full text-white disabled:opacity-0 transition-opacity z-20"
                       >
                         <ChevronDown className="w-6 h-6 -rotate-90" />
                       </button>
@@ -215,7 +215,7 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
                 </div>
 
                 {/* Thumbnails list at bottom */}
-                <div className="p-4 bg-black/40 backdrop-blur-md flex gap-2 overflow-x-auto border-t border-white/10">
+                <div className="p-4 bg-black/40 backdrop-blur-md flex gap-2 overflow-x-auto border-t border-white/10 scrollbar-none">
                   {mediaItems.map((item, idx) => (
                     <div
                       key={idx}
@@ -272,7 +272,7 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
           </div>
 
           {/* Right Side: Details */}
-          <div className="flex-1 flex flex-col bg-white dark:bg-[#121212] overflow-y-auto">
+          <div className="w-full md:w-[340px] md:flex-none flex flex-col bg-white dark:bg-[#121212] overflow-y-auto min-w-0">
             <div className="p-4">
               {/* User Identity */}
               <div className="flex items-center gap-3 mb-4">

@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { Camera, User, Calendar, Upload } from 'lucide-react';
+import { Camera, Calendar, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { ImageAdjustModal } from './ImageAdjustModal';
 
 type OnboardingProps = {
     onComplete: () => void;
@@ -17,17 +18,29 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     const [gender, setGender] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [bio, setBio] = useState('');
-    const [avatar, setAvatar] = useState<File | null>(null);
+    const [avatar, setAvatar] = useState<Blob | null>(null);
     const [avatarPreview, setAvatarPreview] = useState('');
+    const [adjustImage, setAdjustImage] = useState<string | null>(null);
+    const [showAdjustModal, setShowAdjustModal] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setAvatar(file);
-            setAvatarPreview(URL.createObjectURL(file));
+            const reader = new FileReader();
+            reader.onload = () => {
+                setAdjustImage(reader.result as string);
+                setShowAdjustModal(true);
+            };
+            reader.readAsDataURL(file);
         }
+    };
+
+    const handleCropComplete = (croppedBlob: Blob) => {
+        setAvatar(croppedBlob);
+        setAvatarPreview(URL.createObjectURL(croppedBlob));
+        setShowAdjustModal(false);
     };
 
     const handleNext = async () => {
@@ -64,11 +77,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
             let avatarUrl = null;
 
             if (avatar) {
-                const fileExt = avatar.name.split('.').pop();
-                const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+                const fileName = `${user.id}/${Math.random()}.jpg`;
                 const { error: uploadError } = await supabase.storage
                     .from('avatars')
-                    .upload(fileName, avatar);
+                    .upload(fileName, avatar, {
+                        contentType: 'image/jpeg',
+                        upsert: true
+                    });
 
                 if (uploadError) throw uploadError;
 
@@ -225,6 +240,18 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                     </div>
                 </div>
             </div>
+
+            {showAdjustModal && adjustImage && (
+                <ImageAdjustModal
+                    image={adjustImage}
+                    onClose={() => {
+                        setShowAdjustModal(false);
+                        setAdjustImage(null);
+                    }}
+                    onComplete={handleCropComplete}
+                />
+            )}
         </div>
     );
 }
+
