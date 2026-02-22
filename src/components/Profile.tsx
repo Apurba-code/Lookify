@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Grid, User as UserIcon, Settings, X, LogOut, QrCode, Camera, Edit3, Heart, MessageCircle, PlaySquare, Bookmark } from 'lucide-react';
+import { Grid, User as UserIcon, Settings, X, LogOut, QrCode, Camera, Edit3, Heart, MessageCircle, PlaySquare, Bookmark, Copy } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { supabase, Post as PostType, Profile as ProfileType } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -449,34 +449,55 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-1 md:gap-4">
-          {filteredPosts.map((post) => (
-            <div key={post.id} className="aspect-square relative group cursor-pointer overflow-hidden bg-gray-100 dark:bg-gray-800" onClick={() => setSelectedPostId(post.id)}>
-              {post.image_url.match(/\.(mp4|mov|webm)$/i) ? (
-                <video
-                  src={post.image_url}
-                  className="w-full h-full object-cover"
-                  muted
-                  loop
-                />
-              ) : (
-                <img
-                  src={post.image_url}
-                  alt="Post"
-                  className="w-full h-full object-cover"
-                />
-              )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-6 h-6 fill-white" />
-                  <span className="font-bold text-lg">{(post.likes as any)?.[0]?.count || 0}</span>
+          {filteredPosts.map((post) => {
+            const media = post.media || [];
+            const isVideo = (media.length > 0 ? media[0].type === 'video' : post.image_url?.match(/\.(mp4|mov|webm)$/i));
+            const displayUrl = media.length > 0 ? media[0].url : post.image_url;
+
+            return (
+              <div key={post.id} className="aspect-square relative group cursor-pointer overflow-hidden bg-gray-100 dark:bg-gray-800" onClick={() => setSelectedPostId(post.id)}>
+                {isVideo ? (
+                  <video
+                    src={displayUrl}
+                    className="w-full h-full object-cover"
+                    muted
+                    loop
+                  />
+                ) : (
+                  <img
+                    src={displayUrl}
+                    alt="Post"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+
+                {/* Media Indicators */}
+                <div className="absolute top-2 right-2 flex flex-col gap-1 z-10">
+                  {media.length > 1 && (
+                    <div className="bg-black/40 backdrop-blur-md p-1.5 rounded-md text-white shadow-lg">
+                      <Copy className="w-4 h-4" />
+                    </div>
+                  )}
+                  {isVideo && (
+                    <div className="bg-black/40 backdrop-blur-md p-1.5 rounded-md text-white shadow-lg">
+                      <PlaySquare className="w-4 h-4" />
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-6 h-6 fill-white" />
-                  <span className="font-bold text-lg">{(post.comments as any)?.[0]?.count || 0}</span>
+
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white">
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-6 h-6 fill-white" />
+                    <span className="font-bold text-lg">{(post.likes as any)?.[0]?.count || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="w-6 h-6 fill-white" />
+                    <span className="font-bold text-lg">{(post.comments as any)?.[0]?.count || 0}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

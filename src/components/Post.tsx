@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Trash2, Edit3 } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Trash2, Edit3, ChevronDown } from 'lucide-react';
 import { supabase, Post as PostType } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PostDetailModal } from './PostDetailModal';
@@ -215,9 +215,23 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
     return `${days}d`;
   };
 
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const media = post.media || (post.image_url ? [{ url: post.image_url, type: post.image_url.match(/\.(mp4|mov|webm)$/i) ? 'video' : 'image' }] : []);
+
+  const nextMedia = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentMediaIndex(prev => (prev + 1) % media.length);
+  };
+
+  const prevMedia = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentMediaIndex(prev => (prev - 1 + media.length) % media.length);
+  };
+
   return (
     <>
       <article className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg mb-6 transition-colors">
+        {/* ... Header remains same ... */}
         <div className="flex items-center justify-between p-4 relative">
           <button onClick={() => post.profiles?.id && onNavigateToProfile(post.profiles.id)} className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left">
             {post.profiles.avatar_url ? (
@@ -231,17 +245,24 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
                 {post.profiles.username[0].toUpperCase()}
               </div>
             )}
-            <div className="flex items-center gap-1.5">
-              <p className="font-semibold text-sm dark:text-white">{post.profiles.username}</p>
-              <span className="text-gray-400 dark:text-gray-500 text-sm">•</span>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{timeAgo(post.created_at)}</p>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <p className="font-semibold text-sm dark:text-white">{post.profiles.username}</p>
+                {post.location && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    in <span className="font-medium text-gray-900 dark:text-white underline decoration-gray-400/30 underline-offset-2">{post.location}</span>
+                  </p>
+                )}
+                <span className="text-gray-400 dark:text-gray-500 text-sm">•</span>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{timeAgo(post.created_at)}</p>
+              </div>
             </div>
           </button>
           {user?.id === post.user_id && (
             <div className="relative">
               <button
                 onClick={() => setShowDeleteMenu(!showDeleteMenu)}
-                className="text-gray-600 hover:text-gray-900 p-2"
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 p-2"
               >
                 <MoreHorizontal className="w-5 h-5" />
               </button>
@@ -274,26 +295,77 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
           )}
         </div>
 
-        <div className="w-full relative cursor-pointer" onClick={() => setShowDetailModal(true)}>
-          {post.image_url.match(/\.(mp4|mov|webm)$/i) ? (
-            <video
-              src={post.image_url}
-              className="w-full h-auto max-h-[700px] object-contain"
-              controls
-              muted
-              loop
-              playsInline
-            />
-          ) : (
-            <img
-              src={post.image_url}
-              alt="Post"
-              className="w-full h-auto max-h-[700px] object-contain"
-            />
+        {/* Media Carousel */}
+        <div className="w-full relative cursor-pointer aspect-square bg-gray-100 dark:bg-gray-900 overflow-hidden" onClick={() => setShowDetailModal(true)}>
+          <div
+            className="flex transition-transform duration-500 ease-out h-full"
+            style={{ transform: `translateX(-${currentMediaIndex * 100}%)` }}
+          >
+            {media.map((item, idx) => (
+              <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center">
+                {item.type === 'video' ? (
+                  <video
+                    src={item.url}
+                    className="w-full h-full object-contain"
+                    controls={currentMediaIndex === idx}
+                    muted
+                    loop
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={item.url}
+                    alt={`Post media ${idx + 1}`}
+                    className="w-full h-full object-contain"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Arrows */}
+          {media.length > 1 && (
+            <>
+              {currentMediaIndex > 0 && (
+                <button
+                  onClick={prevMedia}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/70 dark:bg-black/50 p-1.5 rounded-full shadow hover:bg-white dark:hover:bg-black transition-all z-10"
+                >
+                  <ChevronDown className="w-5 h-5 rotate-90" />
+                </button>
+              )}
+              {currentMediaIndex < media.length - 1 && (
+                <button
+                  onClick={nextMedia}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/70 dark:bg-black/50 p-1.5 rounded-full shadow hover:bg-white dark:hover:bg-black transition-all z-10"
+                >
+                  <ChevronDown className="w-5 h-5 -rotate-90" />
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Dots Indicator */}
+          {media.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {media.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${currentMediaIndex === idx ? 'bg-[#0095f6] scale-125' : 'bg-white/60'}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Multiple Media Badge */}
+          {media.length > 1 && (
+            <div className="absolute top-4 right-4 bg-black/50 text-white text-[10px] px-2 py-1 rounded-full font-bold backdrop-blur-sm z-10">
+              {currentMediaIndex + 1}/{media.length}
+            </div>
           )}
         </div>
 
-        <div className="p-4">
+        <div className="p-4 pb-2">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-4 dark:text-white">
               <button
@@ -304,12 +376,14 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
                   className={`w-6 h-6 ${isLiked ? 'fill-red-600 text-red-600' : ''}`}
                 />
               </button>
-              <button
-                onClick={() => setShowComments(!showComments)}
-                className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
-              >
-                <MessageCircle className="w-6 h-6" />
-              </button>
+              {post.allow_comments !== false && (
+                <button
+                  onClick={() => setShowComments(!showComments)}
+                  className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
+                >
+                  <MessageCircle className="w-6 h-6" />
+                </button>
+              )}
               <button
                 onClick={() => setShowShareModal(true)}
                 className="hover:text-gray-500 dark:hover:text-gray-400 transition-colors"
@@ -329,9 +403,10 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
         </div>
 
         <div className="px-4 pb-4 space-y-2">
-          {likesCount > 0 && (
+          {(!post.hide_likes || user?.id === post.user_id) && likesCount > 0 && (
             <p className="font-semibold text-sm dark:text-white">
               {likesCount} {likesCount === 1 ? 'like' : 'likes'}
+              {post.hide_likes && <span className="ml-2 text-xs font-normal text-gray-500">(Only visible to you)</span>}
             </p>
           )}
 
@@ -373,7 +448,7 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
             </p>
           )}
 
-          {post.comments && post.comments.length > 0 && (
+          {post.allow_comments !== false && post.comments && post.comments.length > 0 && (
             <div className="space-y-1">
               {!showComments && post.comments.length > 2 && (
                 <button
@@ -398,27 +473,31 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
               </div>
             </div>
           )}
-
-
         </div>
 
-        <form onSubmit={handleComment} className="mt-4 p-4 border-t border-gray-200 dark:border-gray-700 flex gap-2">
-          <input
-            type="text"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Add a comment..."
-            className="flex-1 text-sm focus:outline-none bg-transparent dark:text-white dark:placeholder-gray-400"
-          />
-          {comment.trim() && (
-            <button
-              type="submit"
-              className="text-blue-600 font-semibold text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              Post
-            </button>
-          )}
-        </form>
+        {post.allow_comments !== false ? (
+          <form onSubmit={handleComment} className="mt-2 p-4 border-t border-gray-100 dark:border-gray-700 flex gap-2">
+            <input
+              type="text"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="flex-1 text-sm focus:outline-none bg-transparent dark:text-white dark:placeholder-gray-400"
+            />
+            {comment.trim() && (
+              <button
+                type="submit"
+                className="text-blue-600 font-semibold text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Post
+              </button>
+            )}
+          </form>
+        ) : (
+          <div className="p-4 border-t border-gray-100 dark:border-gray-700 text-center">
+            <p className="text-xs text-gray-500 italic">Comments have been turned off for this post.</p>
+          </div>
+        )}
       </article>
 
       <Modal

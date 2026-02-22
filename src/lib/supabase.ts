@@ -25,7 +25,11 @@ export type Post = {
   id: string;
   user_id: string;
   image_url: string;
+  media?: { url: string; type: 'image' | 'video' }[];
   caption: string;
+  location: string | null;
+  hide_likes: boolean;
+  allow_comments: boolean;
   created_at: string;
   profiles: Profile;
   likes: Like[];

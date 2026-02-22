@@ -67,7 +67,7 @@ export function Search({ onNavigateToProfile }: SearchProps) {
     }
 
     async function handleFollow(userId: string) {
-        if (!currentUser) return;
+        if (!currentUser || userId === currentUser.id) return;
 
         try {
             if (followingIds.has(userId)) {
@@ -145,25 +145,27 @@ export function Search({ onNavigateToProfile }: SearchProps) {
                             </h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 line-clamp-2">{profile.bio || 'No bio yet'}</p>
 
-                            <button
-                                onClick={() => handleFollow(profile.id)}
-                                className={`w-full py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${followingIds.has(profile.id)
-                                    ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                    }`}
-                            >
-                                {followingIds.has(profile.id) ? (
-                                    <>
-                                        <UserCheck className="w-4 h-4" />
-                                        Following
-                                    </>
-                                ) : (
-                                    <>
-                                        <UserPlus className="w-4 h-4" />
-                                        Follow
-                                    </>
-                                )}
-                            </button>
+                            {profile.id !== currentUser?.id && (
+                                <button
+                                    onClick={() => handleFollow(profile.id)}
+                                    className={`w-full py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${followingIds.has(profile.id)
+                                        ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                                        }`}
+                                >
+                                    {followingIds.has(profile.id) ? (
+                                        <>
+                                            <UserCheck className="w-4 h-4" />
+                                            Following
+                                        </>
+                                    ) : (
+                                        <>
+                                            <UserPlus className="w-4 h-4" />
+                                            Follow
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

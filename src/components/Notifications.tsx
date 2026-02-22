@@ -97,7 +97,7 @@ export function Notifications({ onNavigateToProfile, onBack }: NotificationsProp
 
     async function handleFollowBack(e: React.MouseEvent, senderId: string) {
         e.stopPropagation();
-        if (!user || followingIds.has(senderId)) return;
+        if (!user || followingIds.has(senderId) || senderId === user.id) return;
 
         // Optimistic UI
         setFollowingIds(prev => new Set([...Array.from(prev), senderId]));
