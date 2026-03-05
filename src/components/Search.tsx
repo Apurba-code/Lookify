@@ -174,9 +174,14 @@ export function Search({ onNavigateToProfile }: SearchProps) {
                     No users found matching "{searchTerm}"
                 </div>
             ) : (
-                <div className="text-center py-16 text-gray-400">
-                    <SearchIcon className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                    <p>Search for users by username</p>
+                <div className="flex flex-col items-center justify-center py-24 text-center">
+                    <div className="w-24 h-24 mb-6 bg-gray-50 dark:bg-zinc-900 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[40px] flex items-center justify-center text-gray-300 dark:text-zinc-700">
+                        <SearchIcon className="w-10 h-10" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Find your community</h3>
+                    <p className="text-gray-500 dark:text-zinc-500 max-w-xs">
+                        Search for friends, creators, and people you'd like to follow by their username.
+                    </p>
                 </div>
             )}
         </div>

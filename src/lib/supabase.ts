@@ -19,6 +19,8 @@ export type Profile = {
     comments: boolean;
     followers: boolean;
   };
+  last_seen?: string;
+  cover_url?: string | null;
 };
 
 export type Post = {
@@ -86,5 +88,9 @@ export type Message = {
   receiver_id: string;
   content: string;
   is_read: boolean;
+  read_at: string | null;
+  media_url?: string | null;
+  media_type?: 'image' | 'video' | null;
+  updated_at?: string;
   created_at: string;
 };

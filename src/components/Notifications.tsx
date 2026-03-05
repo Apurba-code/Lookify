@@ -147,9 +147,14 @@ export function Notifications({ onNavigateToProfile, onBack }: NotificationsProp
 
             <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {notifications.length === 0 ? (
-                    <div className="p-12 text-center text-gray-500">
-                        <Bell className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                        <p>No notifications yet</p>
+                    <div className="flex flex-col items-center justify-center py-32 px-4 text-center">
+                        <div className="w-24 h-24 mb-6 bg-gray-50 dark:bg-zinc-900 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-full flex items-center justify-center text-gray-300 dark:text-zinc-700">
+                            <Bell className="w-10 h-10" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No activity yet</h3>
+                        <p className="text-gray-500 dark:text-zinc-500 max-w-xs">
+                            When someone likes your posts, comments, or follows you, you'll see it here.
+                        </p>
                     </div>
                 ) : (
                     notifications.map((notif) => (

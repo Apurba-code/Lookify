@@ -22,10 +22,13 @@ function AppContent() {
 
   // Check for onboarding
   useEffect(() => {
-    if (user && profile && !profile.gender && !profile.birth_date && location.pathname !== '/onboarding') {
-      navigate('/onboarding');
+    if (!loading && user && location.pathname === '/') {
+      // Only force onboarding if on home page and info is missing
+      if (!profile || !profile.gender || !profile.birth_date) {
+        navigate('/onboarding');
+      }
     }
-  }, [user, profile, location.pathname, navigate]);
+  }, [user, profile, loading, location.pathname, navigate]);
 
   if (loading) {
     return (

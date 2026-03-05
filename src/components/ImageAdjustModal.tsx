@@ -6,9 +6,11 @@ type ImageAdjustModalProps = {
     image: string;
     onClose: () => void;
     onComplete: (croppedImage: Blob) => void;
+    aspect?: number;
+    cropShape?: 'rect' | 'round';
 };
 
-export function ImageAdjustModal({ image, onClose, onComplete }: ImageAdjustModalProps) {
+export function ImageAdjustModal({ image, onClose, onComplete, aspect = 1, cropShape = 'round' }: ImageAdjustModalProps) {
     const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -99,11 +101,11 @@ export function ImageAdjustModal({ image, onClose, onComplete }: ImageAdjustModa
                     image={image}
                     crop={crop}
                     zoom={zoom}
-                    aspect={1}
+                    aspect={aspect}
                     onCropChange={setCrop}
                     onCropComplete={onCropComplete}
                     onZoomChange={setZoom}
-                    cropShape="round"
+                    cropShape={cropShape}
                     showGrid={false}
                 />
             </div>

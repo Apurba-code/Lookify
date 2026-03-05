@@ -215,6 +215,7 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
     return `${days}d`;
   };
 
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const media = post.media || (post.image_url ? [{ url: post.image_url, type: post.image_url.match(/\.(mp4|mov|webm)$/i) ? 'video' : 'image' }] : []);
 
@@ -296,29 +297,48 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
         </div>
 
         {/* Media Carousel */}
-        <div className="w-full relative cursor-pointer aspect-square bg-gray-100 dark:bg-gray-900 overflow-hidden" onClick={() => setShowDetailModal(true)}>
+        <div
+          className="w-full relative cursor-pointer bg-gray-50 dark:bg-zinc-900 border-y border-gray-100 dark:border-zinc-800/50 overflow-hidden"
+          onClick={() => setShowDetailModal(true)}
+          style={{ aspectRatio: aspectRatio ? `${aspectRatio}` : '1/1' }}
+        >
           <div
             className="flex transition-transform duration-500 ease-out h-full"
             style={{ transform: `translateX(-${currentMediaIndex * 100}%)` }}
           >
             {media.map((item, idx) => (
-              <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center">
+              <div key={idx} className="w-full h-full flex-shrink-0 flex items-center justify-center relative overflow-hidden bg-black">
                 {item.type === 'video' ? (
                   <video
                     src={item.url}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                     controls={currentMediaIndex === idx}
                     muted
                     loop
                     playsInline
+                    onLoadedMetadata={(e) => {
+                      if (idx === 0 && !aspectRatio) {
+                        const { videoWidth, videoHeight } = e.currentTarget;
+                        setAspectRatio(videoWidth / videoHeight);
+                      }
+                    }}
                   />
                 ) : (
                   <img
                     src={item.url}
                     alt={`Post media ${idx + 1}`}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
+                    onLoad={(e) => {
+                      if (idx === 0 && !aspectRatio) {
+                        const { naturalWidth, naturalHeight } = e.currentTarget;
+                        setAspectRatio(naturalWidth / naturalHeight);
+                      }
+                    }}
                   />
                 )}
+
+                {/* Fallback/Overlay for better contrast on dots */}
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
               </div>
             ))}
           </div>

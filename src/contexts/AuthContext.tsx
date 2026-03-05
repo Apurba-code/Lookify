@@ -38,18 +38,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const newUser = session?.user ?? null;
+      setUser(newUser);
 
-      if (session?.user) {
-        // Only load profile if we don't have it or if the user ID changed
-        // This avoids double-fetching on initial load since getSession handles it
-        // However, onAuthStateChange fires on initial load too in some cases, so we need to be careful.
-        // For simplicity and safety against race conditions, we'll fetch if not present.
-        setProfile(currentProfile => {
-          if (currentProfile?.id === session.user.id) return currentProfile;
-          loadProfile(session.user.id);
-          return currentProfile;
-        });
+      if (newUser) {
+        // Only load profile if user ID changed or profile is missing
+        if (!profile || profile.id !== newUser.id) {
+          loadProfile(newUser.id);
+        }
       } else {
         setProfile(null);
         setLoading(false);
@@ -59,7 +55,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Update last_seen heartbeat
+  useEffect(() => {
+    if (!user) return;
+
+    const updateLastSeen = async () => {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ last_seen: new Date().toISOString() })
+          .eq('id', user.id);
+      } catch (err) {
+        console.error('Error updating last_seen:', err);
+      }
+    };
+
+    // Update immediately
+    updateLastSeen();
+
+    // Then heartbeat every 2 minutes
+    const interval = setInterval(updateLastSeen, 120000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   async function loadProfile(userId: string) {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -68,6 +88,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        // User exists in auth.session but not in profiles table? 
+        // Or user was deleted from auth.users and session is stale.
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser) {
+          // User is gone from Auth too. Sign out to clear stale session.
+          await signOut();
+          return;
+        }
+      }
+
       setProfile(data);
     } catch (error) {
       console.error('Error loading profile:', error);

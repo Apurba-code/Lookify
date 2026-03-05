@@ -155,9 +155,9 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
+        <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden min-h-0">
           {/* Left Side: Media Upload/Preview */}
-          <div className="flex-1 md:flex-[1.6] bg-gray-50 dark:bg-zinc-900/50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 relative group min-w-0">
+          <div className="w-full aspect-square md:aspect-auto md:flex-[1.6] bg-gray-50 dark:bg-zinc-900/50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 relative group min-w-0 shrink-0 md:shrink">
             {mediaItems.length === 0 ? (
               <div className="flex flex-col items-center p-8 text-center w-full">
                 <div className="w-24 h-24 mb-6 text-gray-400 flex items-center justify-center bg-gray-100 dark:bg-zinc-800/50 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700">
@@ -272,7 +272,7 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
           </div>
 
           {/* Right Side: Details */}
-          <div className="w-full md:w-[340px] md:flex-none flex flex-col bg-white dark:bg-[#121212] overflow-y-auto min-w-0">
+          <div className="w-full md:w-[340px] flex-1 md:flex-none flex flex-col bg-white dark:bg-[#121212] md:overflow-y-auto min-w-0">
             <div className="p-4">
               {/* User Identity */}
               <div className="flex items-center gap-3 mb-4">
