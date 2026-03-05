@@ -91,6 +91,7 @@ export type Message = {
   read_at: string | null;
   media_url?: string | null;
   media_type?: 'image' | 'video' | null;
+  story_id?: string | null;
   updated_at?: string;
   created_at: string;
 };

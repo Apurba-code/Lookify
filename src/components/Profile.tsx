@@ -507,7 +507,7 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
 
         {/* Profile Info Block */}
         <div className="relative bg-white dark:bg-zinc-900/50 backdrop-blur-xl md:rounded-2xl shadow-xl shadow-black/5 mx-0 md:mx-4 -mt-12 md:-mt-16 z-10 border border-black/5 dark:border-white/5">
-          <div className="px-6 pb-10 md:px-20 pt-8 md:pt-16">
+          <div className="px-6 pb-10 md:px-20 pt-2 md:pt-4">
             <div className="flex flex-col md:flex-row gap-8 md:gap-12 mb-8 items-center md:items-start text-center md:text-left">
               <div className="flex justify-center md:justify-start -mt-20 md:-mt-28">
                 <div
@@ -543,13 +543,13 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
               </div>
 
               <div className="flex-1">
-                <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                  <h1 className="text-3xl font-bold dark:text-white">{profile.username}</h1>
+                <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+                  <h1 className="text-3xl font-bold dark:text-white tracking-tight">{profile.username}</h1>
                   <div className="flex gap-2">
                     {isOwnProfile ? (
                       <button
                         onClick={() => setShowSettingsModal(true)}
-                        className="px-6 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 font-bold rounded-xl text-sm transition-all flex items-center gap-2 dark:text-white"
+                        className="px-6 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 font-bold rounded-xl text-sm transition-all flex items-center gap-2 dark:text-white border border-black/5 dark:border-white/5 active:scale-95"
                       >
                         <Settings className="w-4 h-4" />
                         Edit Profile
@@ -568,17 +568,17 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
                   </div>
                 </div>
 
-                <div className="flex justify-center md:justify-start gap-8 mb-4 dark:text-gray-200 text-sm">
-                  <div className="flex flex-col md:flex-row items-center gap-1">
-                    <span className="font-bold text-lg">{stats.postsCount}</span>
+                <div className="grid grid-cols-3 md:flex md:justify-start gap-4 md:gap-12 mb-6 dark:text-gray-200 text-sm w-full max-w-[320px] md:max-w-none mx-auto md:mx-0">
+                  <div className="flex flex-col items-center md:items-start gap-1">
+                    <span className="font-bold text-xl md:text-2xl">{stats.postsCount}</span>
                     <span className="text-gray-500 uppercase text-[10px] tracking-widest font-bold">posts</span>
                   </div>
-                  <div className="flex flex-col md:flex-row items-center gap-1">
-                    <span className="font-bold text-lg">{stats.followersCount}</span>
+                  <div className="flex flex-col items-center md:items-start gap-1">
+                    <span className="font-bold text-xl md:text-2xl">{stats.followersCount}</span>
                     <span className="text-gray-500 uppercase text-[10px] tracking-widest font-bold">followers</span>
                   </div>
-                  <div className="flex flex-col md:flex-row items-center gap-1">
-                    <span className="font-bold text-lg">{stats.followingCount}</span>
+                  <div className="flex flex-col items-center md:items-start gap-1">
+                    <span className="font-bold text-xl md:text-2xl">{stats.followingCount}</span>
                     <span className="text-gray-500 uppercase text-[10px] tracking-widest font-bold">following</span>
                   </div>
                 </div>

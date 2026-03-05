@@ -1,6 +1,7 @@
-import { X, ChevronLeft, ChevronRight, Heart, Send, Volume2, VolumeX, Pause } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Heart, Send, Volume2, VolumeX, Pause, Loader2 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import logo from '../assets/logo.png';
 
 type Story = {
@@ -33,6 +34,7 @@ export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPr
     const [isLiked, setIsLiked] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [message, setMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const STORY_DURATION = 5000; // 5 seconds for images
 
@@ -87,7 +89,7 @@ export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPr
         }, 100);
 
         return () => clearInterval(interval);
-    }, [nextStory, currentStory.media_type, isPaused]);
+    }, [nextStory, currentStory.media_type, isPaused, canGoNext]);
 
     // Handle Video Play/Pause State
     useEffect(() => {
@@ -142,12 +144,33 @@ export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPr
         setIsLiked(!isLiked);
     };
 
-    const handleSendMessage = (e: React.MouseEvent) => {
-        if (isOwner) return;
+    const handleSendMessage = async (e: React.MouseEvent) => {
+        if (isOwner || !user || !message.trim() || isSending) return;
         e.stopPropagation();
-        if (message.trim()) {
-            alert(`Message sent to ${currentStory.profiles.username}: ${message}`);
+
+        setIsSending(true);
+        setIsPaused(true); // Pause while sending
+
+        try {
+            const { error } = await supabase
+                .from('messages')
+                .insert({
+                    sender_id: user.id,
+                    receiver_id: currentStory.user_id,
+                    content: message.trim(),
+                    story_id: currentStory.id,
+                    is_read: false
+                });
+
+            if (error) throw error;
+
             setMessage('');
+            // Optional: Success feedback could be toast, for now just clear
+        } catch (error) {
+            console.error('Error sending story message:', error);
+        } finally {
+            setIsSending(false);
+            setIsPaused(false);
         }
     };
 
@@ -304,11 +327,15 @@ export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPr
                                 <Heart className={`w-6 h-6 ${isLiked ? 'fill-current' : ''}`} />
                             </button>
                             <button
-                                className="p-3.5 bg-blue-500 rounded-full text-white shadow-lg shadow-blue-500/20 active:scale-90 transition-all disabled:opacity-50"
+                                className="p-3.5 bg-blue-500 rounded-full text-white shadow-lg shadow-blue-500/20 active:scale-90 transition-all disabled:opacity-50 flex items-center justify-center min-w-[50px]"
                                 onClick={handleSendMessage}
-                                disabled={!message.trim()}
+                                disabled={!message.trim() || isSending}
                             >
-                                <Send className="w-6 h-6 fill-white -translate-x-0.5 translate-y-0.5 rotate-[-15deg]" />
+                                {isSending ? (
+                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                ) : (
+                                    <Send className="w-6 h-6 fill-white -translate-x-0.5 translate-y-0.5 rotate-[-15deg]" />
+                                )}
                             </button>
                         </div>
                     </div>

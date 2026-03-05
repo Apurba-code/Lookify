@@ -30,14 +30,36 @@ export function Stories() {
     async function fetchStories() {
         if (!user) return;
         try {
+            // 1. Clean up expired stories for the current user (triggers cascade delete on replies)
+            await supabase
+                .from('stories')
+                .delete()
+                .eq('user_id', user.id)
+                .lt('expires_at', new Date().toISOString());
+
+            // 2. Get mutual friends
+            const [{ data: following }, { data: followers }] = await Promise.all([
+                supabase.from('follows').select('following_id').eq('follower_id', user.id),
+                supabase.from('follows').select('follower_id').eq('following_id', user.id)
+            ]);
+
+            const followingIds = following?.map(f => f.following_id) || [];
+            const followerIds = followers?.map(f => f.follower_id) || [];
+            const mutualIds = followingIds.filter(id => followerIds.includes(id));
+
+            // Include current user in the list
+            const visibleToUserIds = [...mutualIds, user.id];
+
+            // 3. Fetch stories from these users
             const { data, error } = await supabase
                 .from('stories')
                 .select(`
                     *,
                     profiles:user_id (username, avatar_url)
                 `)
+                .in('user_id', visibleToUserIds)
                 .gt('expires_at', new Date().toISOString())
-                .order('created_at', { ascending: true }); // Segments in chronological order
+                .order('created_at', { ascending: true });
 
             if (error) throw error;
 
@@ -49,7 +71,7 @@ export function Stories() {
 
             setGroupedStories(groups);
         } catch (err) {
-            console.error('Error fetching stories:', err);
+            console.error('Error fetching/cleaning stories:', err);
         }
     }
 

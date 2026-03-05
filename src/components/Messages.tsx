@@ -162,7 +162,7 @@ export function Messages({ onBack, onNavigateToProfile }: MessagesProps) {
         try {
             const { data, error } = await supabase
                 .from('messages')
-                .select('*')
+                .select('*, stories(*, profiles:user_id(username))')
                 .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedUser.id}),and(sender_id.eq.${selectedUser.id},receiver_id.eq.${user.id})`)
                 .order('created_at', { ascending: true });
 
@@ -459,6 +459,22 @@ export function Messages({ onBack, onNavigateToProfile }: MessagesProps) {
                                             <div className={`p-3.5 rounded-2xl shadow-sm text-sm ${msg.sender_id === user?.id
                                                 ? 'bg-blue-600 text-white rounded-tr-none'
                                                 : 'bg-white dark:bg-zinc-800 text-gray-900 dark:text-white border border-gray-100 dark:border-zinc-700/50 rounded-tl-none'}`}>
+
+                                                {(msg as any).stories && (
+                                                    <div className="mb-3 rounded-xl overflow-hidden bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center gap-3 p-2 group-hover:bg-black/10 transition-colors">
+                                                        <div className="w-12 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-800">
+                                                            {(msg as any).stories.media_type === 'video' ? (
+                                                                <video src={(msg as any).stories.media_url} className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <img src={(msg as any).stories.media_url} alt="Story" className="w-full h-full object-cover" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0 pr-2">
+                                                            <p className="text-[10px] uppercase tracking-widest font-bold opacity-50 mb-0.5">Replied to story</p>
+                                                            <p className="text-[11px] truncate opacity-80 italic">Story by {(msg as any).stories.profiles?.username || 'user'}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
 
                                                 {msg.media_url && (
                                                     <div className="mb-2 max-w-sm rounded-lg overflow-hidden border border-white/10">
