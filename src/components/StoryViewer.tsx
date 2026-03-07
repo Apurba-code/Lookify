@@ -1,4 +1,4 @@
-import { X, ChevronLeft, ChevronRight, Heart, Send, Volume2, VolumeX, Pause, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Heart, Send, Volume2, VolumeX, Pause, Loader2, Trash2 } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -24,9 +24,10 @@ type StoryViewerProps = {
     hasPrevUser?: boolean;
     onNextUser?: () => void;
     onPrevUser?: () => void;
+    onRefresh?: () => void;
 };
 
-export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPrevUser, onNextUser, onPrevUser }: StoryViewerProps) {
+export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPrevUser, onNextUser, onPrevUser, onRefresh }: StoryViewerProps) {
     const { user } = useAuth();
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [progress, setProgress] = useState(0);
@@ -142,6 +143,48 @@ export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPr
         if (isOwner) return;
         e.stopPropagation();
         setIsLiked(!isLiked);
+    };
+
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isOwner || !user) return;
+
+        const confirmed = window.confirm("Are you sure you want to delete this story?");
+        if (!confirmed) return;
+
+        setIsPaused(true);
+        try {
+            // Delete from storage
+            const pathParts = currentStory.media_url.split('/');
+            const fileName = pathParts[pathParts.length - 1];
+            const filePath = `${user.id}/${fileName}`;
+
+            await supabase.storage.from('stories').remove([filePath]);
+
+            // Delete from DB
+            const { error } = await supabase.from('stories').delete().eq('id', currentStory.id);
+            if (error) throw error;
+
+            if (onRefresh) onRefresh();
+
+            // If it's the only story or last story, close or go next
+            if (stories.length === 1) {
+                onClose();
+            } else {
+                // Move to next if possible, else prev
+                if (currentIndex < stories.length - 1) {
+                    // Stay at same index as next story will slide in (handled by parent refresh usually)
+                    // But if local, we just nextStory()
+                    nextStory();
+                } else {
+                    prevStory();
+                }
+            }
+        } catch (error) {
+            console.error("Delete story error:", error);
+            alert("Failed to delete story");
+            setIsPaused(false);
+        }
     };
 
     const handleSendMessage = async (e: React.MouseEvent) => {
@@ -285,22 +328,34 @@ export function StoryViewer({ stories, initialIndex, onClose, hasNextUser, hasPr
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                            {isOwner && (
+                                <button
+                                    onClick={handleDelete}
+                                    className="p-1.5 text-white/70 hover:text-red-500 transition-colors"
+                                    title="Delete story"
+                                >
+                                    <Trash2 className="w-5 h-5 drop-shadow-md" />
+                                </button>
+                            )}
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
                                 className="p-1.5 text-white/80 hover:text-white transition-colors"
                             >
                                 {isMuted ? <VolumeX className="w-5 h-5 drop-shadow-md" /> : <Volume2 className="w-5 h-5 drop-shadow-md" />}
                             </button>
-                            <button className="p-1.5 text-white/80 hover:text-white transition-colors">
-                                <X className="w-5 h-5 drop-shadow-md" onClick={(e) => { e.stopPropagation(); onClose(); }} />
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onClose(); }}
+                                className="p-1.5 text-white/80 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5 drop-shadow-md" />
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Navigation & Pause Hotspots */}
-                <div className="absolute inset-0 flex z-30">
+                {/* Navigation & Pause Hotspots - Adjusted to avoid header overlap */}
+                <div className="absolute inset-x-0 top-[80px] bottom-[100px] flex z-20">
                     <div className="w-[30%] h-full cursor-pointer" onClick={(e) => { e.stopPropagation(); canGoPrev && prevStory(); }} title="Previous" />
                     <div className="w-[40%] h-full cursor-pointer" onClick={(e) => { e.stopPropagation(); togglePause(); }} title={isPaused ? "Play" : "Pause"} />
                     <div className="w-[30%] h-full cursor-pointer" onClick={(e) => { e.stopPropagation(); canGoNext && nextStory(); }} title="Next" />

@@ -252,6 +252,7 @@ export function Stories() {
                             setSelectedUserId(activeUserIds[idx - 1]);
                         }
                     }}
+                    onRefresh={fetchStories}
                 />
             )}
         </>

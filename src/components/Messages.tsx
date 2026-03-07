@@ -486,7 +486,7 @@ export function Messages({ onBack, onNavigateToProfile }: MessagesProps) {
                                                     </div>
                                                 )}
 
-                                                {msg.content && <p className="leading-relaxed">{msg.content}</p>}
+                                                {msg.content && <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>}
 
                                                 {msg.updated_at && (
                                                     <p className="text-[10px] opacity-60 mt-1 italic">Edited</p>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Heart, MessageCircle, Send, ChevronDown } from 'lucide-react';
+import { X, Heart, MessageCircle, Send, ChevronDown, Smile } from 'lucide-react';
 import { supabase, Profile } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { ShareModal } from './ShareModal';
@@ -51,6 +51,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
     const [submitting, setSubmitting] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(() => {
         loadPostDetails();
@@ -283,7 +284,7 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                         <div className="flex items-center gap-1.5 flex-wrap">
                                             <button
                                                 onClick={() => { onClose(); onNavigateToProfile(post.profiles.id); }}
-                                                className="font-semibold text-sm hover:text-blue-600 transition-colors dark:text-white"
+                                                className="font-bold text-sm hover:text-blue-600 transition-colors dark:text-white"
                                             >
                                                 {post.profiles.username}
                                             </button>
@@ -313,13 +314,13 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                                 </div>
                                             )}
                                         </button>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm dark:text-gray-100 leading-relaxed">
-                                                <span className="font-semibold mr-2 dark:text-white hover:text-blue-600 transition-colors cursor-pointer" onClick={() => { onClose(); onNavigateToProfile(post.profiles.id); }}>
+                                        <div className="flex-1 min-w-0 pr-4">
+                                            <div className="text-sm dark:text-gray-100 leading-relaxed whitespace-pre-wrap">
+                                                <span className="font-bold mr-2 dark:text-white hover:text-blue-600 transition-colors cursor-pointer inline-block" onClick={() => { onClose(); onNavigateToProfile(post.profiles.id); }}>
                                                     {post.profiles.username}
                                                 </span>
                                                 {post.caption}
-                                            </p>
+                                            </div>
                                             <p className="text-xs text-gray-400 dark:text-zinc-600 mt-2">{timeAgo(post.created_at)}</p>
                                         </div>
                                     </div>
@@ -373,15 +374,15 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
                                                         )}
                                                     </button>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm dark:text-gray-100 leading-relaxed">
+                                                        <div className="text-sm dark:text-gray-100 leading-relaxed whitespace-pre-wrap">
                                                             <button
                                                                 onClick={() => { onClose(); onNavigateToProfile(c.user_id); }}
-                                                                className="font-semibold mr-2 hover:text-blue-600 transition-colors dark:text-white"
+                                                                className="font-bold mr-2 hover:text-blue-600 transition-colors dark:text-white inline-block"
                                                             >
                                                                 {c.profiles?.username}
                                                             </button>
                                                             {c.content}
-                                                        </p>
+                                                        </div>
                                                         <div className="flex items-center gap-3 mt-2">
                                                             <p className="text-xs text-gray-400 dark:text-zinc-600">{timeAgo(c.created_at)}</p>
                                                             <button className="text-xs font-bold text-gray-500 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity">Reply</button>
@@ -437,6 +438,33 @@ export function PostDetailModal({ postId, onClose, onNavigateToProfile }: PostDe
 
                                 {post.allow_comments !== false ? (
                                     <form onSubmit={handleComment} className="flex gap-3 items-center">
+                                        <div className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className="p-1 transition-transform active:scale-95 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                            >
+                                                <Smile className="w-5 h-5" />
+                                            </button>
+
+                                            {showEmojiPicker && (
+                                                <div className="absolute bottom-full left-0 mb-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-3 shadow-2xl z-50 grid grid-cols-6 gap-2 animate-in fade-in zoom-in duration-200 min-w-[240px]">
+                                                    {['❤️', '🙌', '🔥', '👏', '😢', '😍', '✨', '😂', '😮', '👍', '🙏', '❤️‍🔥', '🤩', '💯', '🤔', '😎', '🥳', '💡'].map(emoji => (
+                                                        <button
+                                                            key={emoji}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setComment(prev => prev + emoji);
+                                                                setShowEmojiPicker(false);
+                                                            }}
+                                                            className="text-2xl hover:scale-125 transition-transform p-1"
+                                                        >
+                                                            {emoji}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                         <input
                                             id="modal-comment-input"
                                             type="text"

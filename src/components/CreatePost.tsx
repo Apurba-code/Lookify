@@ -23,6 +23,7 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
   const [hideLikes, setHideLikes] = useState(false);
   const [disableComments, setDisableComments] = useState(false);
 
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
@@ -294,10 +295,34 @@ export function CreatePost({ onClose, onSuccess }: CreatePostProps) {
                   placeholder="Write a caption..."
                   className="w-full bg-transparent text-gray-900 dark:text-white text-base outline-none resize-none min-h-[160px] placeholder:text-gray-400 dark:placeholder:text-zinc-600"
                 />
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50 dark:border-zinc-900">
-                  <button type="button" className="text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors">
-                    <Smile className="w-5 h-5" />
-                  </button>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50 dark:border-zinc-900 relative">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className="text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors"
+                    >
+                      <Smile className="w-5 h-5" />
+                    </button>
+
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-full left-0 mb-2 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-3 shadow-2xl z-50 grid grid-cols-6 gap-2 animate-in fade-in zoom-in duration-200 min-w-[240px]">
+                        {['❤️', '🙌', '🔥', '👏', '😢', '😍', '✨', '😂', '😮', '👍', '🙏', '❤️‍🔥', '🤩', '💯', '🤔', '😎', '🥳', '💡'].map(emoji => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => {
+                              setCaption(prev => prev + emoji);
+                              setShowEmojiPicker(false);
+                            }}
+                            className="text-2xl hover:scale-125 transition-transform p-1"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <span className="text-xs text-gray-400 dark:text-zinc-600 font-medium">
                     {caption.length}/2,200
                   </span>

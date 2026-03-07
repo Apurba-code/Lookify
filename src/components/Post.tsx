@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Trash2, Edit3, ChevronDown } from 'lucide-react';
+import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Trash2, Edit3, ChevronDown, Smile } from 'lucide-react';
 import { supabase, Post as PostType } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PostDetailModal } from './PostDetailModal';
@@ -22,12 +22,14 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
   const [showDeleteMenu, setShowDeleteMenu] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Editing state
   const [isEditing, setIsEditing] = useState(false);
   const [editCaption, setEditCaption] = useState(post.caption || '');
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [isCaptionExpanded, setIsCaptionExpanded] = useState(false);
 
   async function handleDelete() {
     setShowDeleteModal(false);
@@ -248,7 +250,7 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
             )}
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <p className="font-semibold text-sm dark:text-white">{post.profiles.username}</p>
+                <p className="font-bold text-sm dark:text-white">{post.profiles.username}</p>
                 {post.location && (
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     in <span className="font-medium text-gray-900 dark:text-white underline decoration-gray-400/30 underline-offset-2">{post.location}</span>
@@ -457,15 +459,26 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
               </div>
             </form>
           ) : post.caption && (
-            <p className="text-sm dark:text-gray-100">
+            <div className="text-sm dark:text-gray-100 whitespace-pre-wrap">
               <button
                 onClick={() => post.profiles?.id && onNavigateToProfile(post.profiles.id)}
-                className="font-semibold mr-2 hover:text-blue-600 transition-colors dark:text-white"
+                className="font-bold mr-2 hover:text-blue-600 transition-colors dark:text-white inline-block"
               >
                 {post.profiles?.username}
               </button>
-              {post.caption}
-            </p>
+              {isCaptionExpanded || post.caption.length <= 120
+                ? post.caption
+                : `${post.caption.slice(0, 110)}...`
+              }
+              {post.caption.length > 120 && (
+                <button
+                  onClick={() => setIsCaptionExpanded(!isCaptionExpanded)}
+                  className="ml-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition-colors"
+                >
+                  {isCaptionExpanded ? 'less' : 'more'}
+                </button>
+              )}
+            </div>
           )}
 
           {post.allow_comments !== false && post.comments && post.comments.length > 0 && (
@@ -480,15 +493,15 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
               )}
               <div className={`space-y-1 ${!showComments ? 'max-h-20 overflow-hidden' : ''}`}>
                 {post.comments.map((comment) => (
-                  <p key={comment.id} className="text-sm dark:text-gray-200">
+                  <div key={comment.id} className="text-sm dark:text-gray-200 whitespace-pre-wrap">
                     <button
                       onClick={() => comment.profiles?.id && onNavigateToProfile(comment.profiles.id)}
-                      className="font-semibold mr-2 hover:text-blue-600 transition-colors dark:text-white"
+                      className="font-bold mr-2 hover:text-blue-600 transition-colors dark:text-white inline-block"
                     >
                       {comment.profiles?.username}
                     </button>
                     {comment.content}
-                  </p>
+                  </div>
                 ))}
               </div>
             </div>
@@ -496,22 +509,51 @@ export function Post({ post, onUpdate, onNavigateToProfile }: PostProps) {
         </div>
 
         {post.allow_comments !== false ? (
-          <form onSubmit={handleComment} className="mt-2 p-4 border-t border-gray-100 dark:border-gray-700 flex gap-2">
-            <input
-              type="text"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-1 text-sm focus:outline-none bg-transparent dark:text-white dark:placeholder-gray-400"
-            />
-            {comment.trim() && (
-              <button
-                type="submit"
-                className="text-blue-600 font-semibold text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Post
-              </button>
-            )}
+          <form onSubmit={handleComment} className="mt-2 p-4 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="p-1 transition-transform active:scale-95 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <Smile className="w-5 h-5" />
+                </button>
+
+                {showEmojiPicker && (
+                  <div className="absolute bottom-full left-0 mb-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl p-3 shadow-2xl z-30 grid grid-cols-6 gap-2 animate-in fade-in zoom-in duration-200 min-w-[240px]">
+                    {['❤️', '🙌', '🔥', '👏', '😢', '😍', '✨', '😂', '😮', '👍', '🙏', '❤️‍🔥', '🤩', '💯', '🤔', '😎', '🥳', '💡'].map(emoji => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => {
+                          setComment(prev => prev + emoji);
+                          setShowEmojiPicker(false);
+                        }}
+                        className="text-2xl hover:scale-125 transition-transform p-1"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <input
+                type="text"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 text-sm focus:outline-none bg-transparent dark:text-white dark:placeholder-gray-400"
+              />
+              {comment.trim() && (
+                <button
+                  type="submit"
+                  className="text-blue-600 font-semibold text-sm hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Post
+                </button>
+              )}
+            </div>
           </form>
         ) : (
           <div className="p-4 border-t border-gray-100 dark:border-gray-700 text-center">
