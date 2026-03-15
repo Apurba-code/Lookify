@@ -515,7 +515,7 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
                   onClick={() => {
                     if (userStories.length > 0) {
                       setShowProfileMenu(true);
-                    } else if (profilePicHistory.length > 0) {
+                    } else if (profile.avatar_url) {
                       setShowProfileCarousel(true);
                     }
                   }}
@@ -940,7 +940,7 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
       {showAdjustModal && adjustImage && (
         <ImageAdjustModal
           image={adjustImage}
-          aspect={adjustType === 'avatar' ? 1 : 2.6}
+          aspect={adjustType === 'avatar' ? 1 : 16 / 5}
           cropShape={adjustType === 'avatar' ? 'round' : 'rect'}
           onClose={() => {
             setShowAdjustModal(false);
@@ -989,9 +989,9 @@ export function Profile({ userId: propUserId, onNavigateToProfile }: ProfileProp
         </div>
       )}
 
-      {showProfileCarousel && profilePicHistory.length > 0 && (
+      {showProfileCarousel && (
         <ProfilePicCarousel
-          images={profilePicHistory}
+          images={profilePicHistory.length > 0 ? profilePicHistory : [{ url: profile.avatar_url || '', created_at: profile.created_at || new Date().toISOString() }]}
           onClose={() => setShowProfileCarousel(false)}
         />
       )}

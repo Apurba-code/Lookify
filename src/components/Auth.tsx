@@ -54,7 +54,7 @@ export function Auth() {
           <span className="text-2xl font-bold text-white tracking-tight font-heading">Lookify</span>
         </div>
 
-        <div className="relative z-10 max-w-md">
+        <div key={isLogin.toString()} className="relative z-10 max-w-md animate-in fade-in slide-in-from-left-4 duration-500">
           <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold text-white leading-[1.05] mb-8 font-heading tracking-tight">
             {isLogin ? (
               <>Join the premium <span className="text-blue-500">creative</span> community.</>
@@ -76,7 +76,7 @@ export function Auth() {
       <div className="flex-1 flex flex-col p-10 md:p-16 relative bg-white dark:bg-zinc-950 overflow-y-auto scrollbar-hide">
 
         <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto space-y-10">
-          <div className="space-y-3">
+          <div key={`header-${isLogin}`} className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
             <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 dark:text-white font-heading">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h3>
@@ -85,9 +85,9 @@ export function Auth() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form key={isLogin.toString()} onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {!isLogin && (
-              <>
+              <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-900 dark:text-zinc-400 uppercase tracking-wider">Full name</label>
                   <input
@@ -110,7 +110,7 @@ export function Auth() {
                     required
                   />
                 </div>
-              </>
+              </div>
             )}
 
             <div className="space-y-2">

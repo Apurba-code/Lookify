@@ -24,7 +24,9 @@ export function ImageAdjustModal({ image, onClose, onComplete, aspect = 1, cropS
             const image = new Image();
             image.addEventListener('load', () => resolve(image));
             image.addEventListener('error', (error) => reject(error));
-            image.setAttribute('crossOrigin', 'anonymous');
+            if (!url.startsWith('data:')) {
+                image.setAttribute('crossOrigin', 'anonymous');
+            }
             image.src = url;
         });
 
@@ -70,9 +72,11 @@ export function ImageAdjustModal({ image, onClose, onComplete, aspect = 1, cropS
                 const croppedImage = await getCroppedImg(image, croppedAreaPixels);
                 onComplete(croppedImage);
                 onClose();
+            } else {
+                console.warn('Cannot save: croppedAreaPixels is not yet defined');
             }
         } catch (e) {
-            console.error(e);
+            console.error('Error in handleSave:', e);
         }
     };
 

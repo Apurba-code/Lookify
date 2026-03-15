@@ -46,7 +46,7 @@ export function Feed({ onNavigateToProfile }: FeedProps) {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-0 sm:px-4 py-6">
+    <div className="max-w-lg mx-auto px-4 py-6">
       <Stories />
 
       {posts.length === 0 ? (
